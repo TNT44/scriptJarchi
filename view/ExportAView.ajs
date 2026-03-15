@@ -1,0 +1,76 @@
+/*
+ * New Archi Script
+ * 30/04/2023
+ * Export d'une view vers JSON
+ * 
+ * Version 0.9.1 
+ * 
+ * Version 0.9.2
+ * ajout exportModelNote
+ * ajout exportModelGroupe
+ *
+ * Version 0.9.3
+ * ajout exportModelconnection
+ * ajout exportModelreference
+ * 
+ * Version 0.9.4    - 21/09/2023
+ * ajout numero version dans json
+ * ajout du parentElement
+ * split des fct dans base et Export 
+ * 
+ * Version 0.9.6   - 28/09/2023
+ * nouvelle version json - 0.9.6
+ * 
+ * Version 0.9.7   - 04/10/2023
+ * export des répertoires
+ * nouvelle version json - 0.9.7
+ * 
+ * Version 0.9.8 -- 16/10/2023
+ * Externalisation fullExportVue(unevue)
+ * 
+ */
+load(__SCRIPTS_DIR__ + "lib/fctBase.js");
+load(__SCRIPTS_DIR__ + "lib/fctExport.js");
+load(__SCRIPTS_DIR__ + "lib/fctFullExport.js");
+
+var debug = false;
+
+console.show();
+console.clear();
+
+console.log("Exporte une vue : 2023 10 16 19h20");
+
+var unevue = $(selection).filter("archimate-diagram-model").first();
+
+if (unevue) {
+  
+   var expview = fullExportVue(unevue);
+
+
+    var str = JSON.stringify(expview, null, 2); // spacing level = 2
+
+    if (!debug) {
+        // Open a dialog to let the user choose where to save the generated file
+        var defaultFileName = model.name
+            ? model.name + "-" + unevue.name + ".json"
+            : "Exported Model.json"; // Default file name
+        var exportFile = window.promptSaveFile({
+            title: "Export to json",
+            filterExtensions: ["*.json"],
+            fileName: defaultFileName,
+        });
+
+        if (exportFile != null) {
+            $.fs.writeFile(exportFile, str);
+
+            console.log("Export vers" + defaultFileName);
+            console.log("> Export done");
+        } else {
+            console.log("> Export cancelled");
+        }
+    }
+} else {
+    console.log("Merci de selectionner une vue");
+}
+
+console.log("fin");

@@ -1,0 +1,119 @@
+load(__SCRIPTS_DIR__ + "lib/fctBase.js");
+load(__SCRIPTS_DIR__ + "lib/fctExport.js");
+load(__SCRIPTS_DIR__ + "lib/fctRecherche.js");
+load(__SCRIPTS_DIR__ + "lib/fctProperties.js");
+
+console.show();
+console.clear();
+
+console.log("Export tous les éléments d'un model 2025 07 02 A4");
+
+
+
+
+/**
+ * @param {string} selector Le sélecteur pour trouver les éléments.
+ * @description Cette fonction liste les éléments du modèle qui correspondent au sélecteur donné.
+ */
+function listElements(selector) {
+
+    var debug = false;
+
+    var listeModelObject = [];
+    var listeModelRelation = [];
+
+    var expview = {};
+    expview.version = "0.9.7";
+    expview.description = "Export des Elements et Relations";
+
+    // Utiliser le sélecteur jArchi pour trouver les éléments.
+    // L'objet `$` est un raccourci pour `model.getConcepts()`.
+    var elements = $(selector);
+
+    if (elements.size() > 0) {
+        console.log("-----------------------------------------");
+        console.log("Liste des éléments trouvés avec le sélecteur : " + selector);
+        console.log("Nombre d'éléments : " + elements.size());
+        console.log("-----------------------------------------");
+
+        // Parcourir chaque élément et afficher ses informations
+        elements.each(function (element) {
+            console.log("  - Nom: " + element.name + " (Type: " + element.type + ", ID: " + element.id + ")");
+
+            var elt = exportElement(element);
+            if (elt) {
+                listeModelObject.push(elt);
+            }
+        });
+
+
+        // Utiliser le sélecteur jArchi pour trouver les relations.
+        var relationships = $("relationship");
+
+        if (relationships.size() > 0) {
+            console.log("-----------------------------------------");
+            console.log("Liste des relations trouvées avec le sélecteur : " + selector);
+            console.log("Nombre de relations : " + relationships.size());
+            console.log("-----------------------------------------");
+
+            // Parcourir chaque relation et afficher ses informations
+            relationships.each(function (rel) {
+
+                try {
+                    //var theConcept = element.concept
+                    var theObject = exportRelation(rel);
+
+                    listeModelRelation.push(theObject);
+                } catch (error) {
+                    console.log(
+                        "> Build Ignoring Relation: " + element
+                    );
+                    var str = JSON.stringify(element, null, 2); // spacing level = 2
+                    console.log(str);
+                }
+            });
+        }
+
+        console.log("-----------------------------------------");
+
+
+        expview.tabModelObject = listeModelObject;
+        expview.tabModelRelation = listeModelRelation;
+
+
+        var str = JSON.stringify(expview, null, 2); // spacing level = 2
+
+        if (!debug) {
+            // Open a dialog to let the user choose where to save the generated file
+            var defaultFileName = model.name + ".elementsrelations.json";
+            var exportFile = window.promptSaveFile({
+                title: "Export to json",
+                filterExtensions: ["*.json"],
+                fileName: defaultFileName,
+            });
+
+            if (exportFile != null) {
+                $.fs.writeFile(exportFile, str);
+
+                console.log("Export vers" + defaultFileName);
+                console.log("> Export done");
+            } else {
+                console.log("> Export cancelled");
+            }
+        } else {
+            console.log(str);
+        }
+
+
+    } else {
+        console.log("Aucun élément trouvé avec le sélecteur : " + selector);
+    }
+}
+
+// --- Exemple d'utilisation de la méthode ---
+
+// Exemple 1 : Lister tous les éléments du modèle
+listElements("element");
+
+
+console.log("fin");
